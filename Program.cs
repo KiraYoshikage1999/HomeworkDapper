@@ -27,6 +27,7 @@ namespace HomeworkDapper
                 "6. Find dog by breed\n" +
                 "7. Update dog by ID\n" +
                 "8. Adopt a dog\n" +
+                "9. Bulk insert 20 dogs" +
                 "0. Exit\n" +
                 "Choose an option: ");
 
@@ -89,7 +90,9 @@ namespace HomeworkDapper
                         ShowAvailableDogs(connection);
                         AdoptDog(connection);
                         break;
-
+                    case "9":
+                        BulkInsertDogs(connection);
+                        break;
                     case "0":
                         Console.WriteLine("Exiting program...");
                         return;
@@ -123,6 +126,37 @@ namespace HomeworkDapper
                     END
             ");
         }
+        //Bulk DOGS
+
+        private static void BulkInsertDogs(SqlConnection connection)
+        {
+            var dogs = new List<Dog>();
+
+            for (int i = 1; i <= 20; i++)
+            {
+                dogs.Add(new Dog
+                {
+                    Name = $"Dog_{i}",
+                    Age = 1 + i % 10,
+                    DogBreed = $"Breed_{i % 5}",
+                    IsAdopted = false
+                });
+            }
+
+            var sql = @"
+                INSERT INTO Dogs (Name, Age, DogBreed, IsAdopted)
+                VALUES (@Name, @Age, @DogBreed, @IsAdopted);";
+
+            using var transaction = connection.BeginTransaction();
+            connection.Execute(sql, dogs, transaction);
+            transaction.Commit();
+
+            Console.WriteLine("20 dogs inserted successfully.");
+        }
+
+
+
+
         //Adopt Dog methods
 
         private static void ShowAvailableDogs(SqlConnection connection)
