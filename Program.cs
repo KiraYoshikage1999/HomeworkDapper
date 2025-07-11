@@ -26,6 +26,7 @@ namespace HomeworkDapper
                 "5. Find dog by ID\n" +
                 "6. Find dog by breed\n" +
                 "7. Update dog by ID\n" +
+                "8. Adopt a dog\n" +
                 "0. Exit\n" +
                 "Choose an option: ");
 
@@ -84,6 +85,11 @@ namespace HomeworkDapper
                             Console.WriteLine("Invalid ID.");
                         }
                         break;
+                    case "8":
+                        ShowAvailableDogs(connection);
+                        AdoptDog(connection);
+                        break;
+
                     case "0":
                         Console.WriteLine("Exiting program...");
                         return;
@@ -107,8 +113,53 @@ namespace HomeworkDapper
                         IsAdopted BIT NOT NULL
                     );
                 END
+                IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Adopters' AND xtype='U')
+                    BEGIN
+                        CREATE TABLE Adopters (
+                            Id INT IDENTITY(1,1) PRIMARY KEY,
+                            Name NVARCHAR(MAX) NOT NULL,
+                            PhoneNumber NVARCHAR(20) NOT NULL
+                        );
+                    END
             ");
         }
+        //Adopt Dog methods
+
+        private static void ShowAvailableDogs(SqlConnection connection)
+        {
+            var dogs = connection.Query("SELECT * FROM Dogs WHERE IsAdopted = 0;");
+            foreach (var dog in dogs)
+            {
+                Console.WriteLine(dog.ToString());
+            }
+        }
+
+        private static void AdoptDog(SqlConnection connection)
+        {
+            Console.Write("Enter Adopter ID: ");
+            if (!int.TryParse(Console.ReadLine(), out int adopterId))
+            {
+                Console.WriteLine("Invalid adopter ID.");
+                return;
+            }
+
+            Console.Write("Enter Dog ID to adopt: ");
+            if (!int.TryParse(Console.ReadLine(), out int dogId))
+            {
+                Console.WriteLine("Invalid dog ID.");
+                return;
+            }
+
+            var updated = connection.Execute(@"
+        UPDATE Dogs
+        SET IsAdopted = 1, AdopterId = @AdopterId
+        WHERE Id = @DogId;",
+                new { AdopterId = adopterId, DogId = dogId });
+
+            Console.WriteLine(updated > 0 ? "Dog adopted successfully!" : "Adoption failed. Check IDs.");
+        }
+
+
 
         //Read All Dogs
         private static void ReadAllDogs(SqlConnection connection)

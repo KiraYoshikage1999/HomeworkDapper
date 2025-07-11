@@ -14,6 +14,9 @@ namespace HomeworkDapper.Entities
         public string DogBreed { get; set; }
         public bool IsAdopted { get; set; }
 
+        public int? AdopterId { get; set; }  
+        public Adopter Adopter { get; set; }
+
         public override string ToString()
         {
             return $"<----{Id}----->\nName of Dog: {Name} -- {Age}\nDog breed: {DogBreed} -- Is Adopted: {IsAdopted}";
